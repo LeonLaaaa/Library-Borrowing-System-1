@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>Library Management System</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; font-family:system-ui, sans-serif; }
+    body { background:linear-gradient(145deg,#f0f4fa,#e6edf4); min-height:100vh; padding:24px 20px; }
+    .app-shell { max-width:1300px; margin:0 auto; }
+    .page-view { display:none; animation:fadeIn 0.25s ease; }
+    .page-view.active-page { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);} }
+    .card { background:white; border-radius:28px; padding:20px 24px; box-shadow:0 12px 30px rgba(0,0,0,0.05); }
+    .glass-header { background:rgba(255,255,255,0.85); border-radius:32px; padding:12px 24px; margin-bottom:24px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .logo-area h2 { background:linear-gradient(135deg,#1e4b76,#2c6e9e); -webkit-background-clip:text; background-clip:text; color:transparent; }
+    .badge-user { background:#eef2ff; padding:6px 14px; border-radius:40px; font-size:0.85rem; }
+    .avatar-sm { width:28px; height:28px; background:#2b6cb0; border-radius:50%; color:white; display:inline-flex; align-items:center; justify-content:center; }
+    button { border:none; background:#2b6cb0; color:white; padding:8px 18px; border-radius:40px; cursor:pointer; transition:0.2s; }
+    button.secondary { background:#f1f5f9; color:#1e4b76; border:1px solid #cbd5e1; }
+    button.ghost { background:transparent; color:#2c6e9e; border:1px solid #cbd5e1; }
+    button.danger { background:#e11d48; }
+    button.small { padding:5px 12px; font-size:0.75rem; }
+    .grid-books { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:18px; margin-top:12px; }
+    .book-card { background:white; border-radius:24px; padding:16px; border:1px solid #eef2ff; }
+    .book-title { font-weight:700; font-size:1.1rem; display:flex; justify-content:space-between; }
+    .tag { background:#eef2ff; color:#2b6cb0; border-radius:30px; font-size:0.7rem; padding:4px 10px; }
+    .input { border:1px solid #cfdee9; border-radius:20px; padding:10px 16px; width:100%; font-size:0.85rem; }
+    .search-bar { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+    .admin-table { width:100%; border-collapse:collapse; background:white; border-radius:16px; overflow:hidden; margin-top:16px; }
+    .admin-table th,.admin-table td { padding:12px 16px; text-align:left; border-bottom:1px solid #e2e8f0; }
+    .admin-table th { background:#f8fafc; color:#1e4b76; }
+    .edit-modal { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); display:none; align-items:center; justify-content:center; z-index:1000; }
+    .edit-modal-content { background:white; padding:24px; border-radius:20px; width:90%; max-width:500px; }
+    .reminder-modal { position:fixed; top:20px; right:20px; background:#fffbeb; border:1px solid #fbbf24; border-radius:12px; padding:16px; z-index:1000; display:none; max-width:300px; }
+    .auth-tab { display:flex; justify-content:center; gap:10px; margin-bottom:20px; }
+    .auth-tab button.active { background:#2b6cb0; color:white; }
+    .auth-form { display:none; }
+    .auth-form.active { display:block; }
+    .mt-3{margin-top:12px;}.mt-4{margin-top:16px;}.mb-3{margin-bottom:12px;}.text-muted{color:#5b6e8c;font-size:0.8rem;}.text-center{text-align:center;}.flex-gap{display:flex;gap:12px;align-items:center;flex-wrap:wrap;}.flex-between{display:flex;justify-content:space-between;align-items:center;}hr{margin:16px 0;opacity:0.3;}
+  </style>
+</head>
+<body>
+<div class="app-shell">
+  <div class="glass-header">
+    <div class="logo-area"><h2>📚 Library System</h2></div>
+    <div class="flex-gap">
+      <div id="globalUserBadge" class="badge-user">⚡ Not logged in</div>
+      <button id="globalLogoutBtn" class="secondary small" style="display:none">Logout</button>
+    </div>
+  </div>
+
+  <div id="homePage" class="page-view active-page">
+    <div class="card" style="max-width:700px;margin:40px auto;text-align:center;">
+      <h2>✨ Welcome to Library System</h2>
+      <p class="text-muted">Please log in or register to access borrowing services.</p>
+      <div class="auth-tab mt-4">
+        <button id="loginTabBtn" class="active">Login</button>
+        <button id="regTabBtn">Register</button>
+      </div>
+      <div id="loginForm" class="auth-form active mt-4">
+        <div class="card" style="width:260px;margin:0 auto;text-align:left;">
+          <h3>🔐 Login</h3>
+          <input class="input mt-3" id="loginUser" placeholder="Username">
+          <input class="input mt-3" id="loginPass" type="password" placeholder="Password">
+          <button class="mt-3" style="width:100%" id="doLoginBtn">Login</button>
+        </div>
+      </div>
+      <div id="regForm" class="auth-form mt-4">
+        <div class="card" style="width:260px;margin:0 auto;text-align:left;">
+          <h3>📝 Register</h3>
+          <input class="input mt-3" id="regUser" placeholder="Username">
+          <input class="input mt-3" id="regName" placeholder="Display Name">
+          <input class="input mt-3" id="regPass" type="password" placeholder="Password">
+          <button class="secondary mt-3" style="width:100%" id="doRegBtn">Create Account</button>
+        </div>
+      </div>
+      <div class="text-muted mt-4">Demo: admin / password123</div>
+    </div>
+  </div>
+
+  <div id="browsePage" class="page-view">
+    <div class="card">
+      <div class="flex-between" style="flex-wrap:wrap;gap:12px;">
+        <div class="search-bar">
+          <input class="input" id="searchInput" placeholder="Title/Author/Category" style="width:240px">
+          <select class="input" id="catFilter" style="width:150px"></select>
+          <button id="searchBtn" class="small">Search</button>
+          <button id="resetBtn" class="secondary small">Reset</button>
+        </div>
+        <div class="flex-gap">
+          <button id="myRecordsBtn" class="ghost">📖 My Borrows</button>
+          <button id="adminBtn" class="ghost" style="display:none">⚙️ Admin</button>
+          <button id="reportBtn" class="ghost" style="display:none">📎 Export</button>
+        </div>
+      </div>
+      <hr>
+      <div id="booksGrid" class="grid-books"></div>
+    </div>
+  </div>
+
+  <div id="confirmPage" class="page-view">
+    <div class="card" style="max-width:550px;margin:20px auto;">
+      <div id="confirmBox"></div>
+      <button class="secondary mt-4" onclick="showPage('browsePage')">← Back</button>
+    </div>
+  </div>
+
+  <div id="recordsPage" class="page-view">
+    <div class="card"><h3>📌 My Records</h3><div id="recordsBox" class="mt-3"></div>
+    <button class="secondary mt-4" onclick="showPage('browsePage')">← Back</button></div>
+  </div>
+
+  <div id="adminPage" class="page-view">
+    <div class="card">
+      <div class="flex-between mb-3">
+        <h3>⚙️ Admin Panel</h3>
+        <button id="addBookBtn" class="small">➕ Add Book</button>
+      </div>
+      <h4>📚 All Books</h4>
+      <table class="admin-table"><thead><tr><th>ID</th><th>Title</th><th>Author</th><th>Cat</th><th>Total</th><th>Avail</th><th>Action</th></tr></thead><tbody id="adminBooks"></tbody></table>
+      <hr class="mt-4">
+      <h4>📖 Borrowed Books</h4>
+      <table class="admin-table"><thead><tr><th>LoanID</th><th>Title</th><th>User</th><th>Due</th><th>Left</th><th>Action</th></tr></thead><tbody id="adminLoans"></tbody></table>
+    </div>
+  </div>
+
+  <div id="editModal" class="edit-modal"><div class="edit-modal-content">
+    <h3>✏️ Edit Book</h3>
+    <input type="hidden" id="editBid"><input class="input mt-3" id="editTitle" placeholder="Title"><input class="input mt-3" id="editAuthor" placeholder="Author"><input class="input mt-3" id="editCat" placeholder="Category"><input class="input mt-3" id="editTotal" placeholder="Total" type="number"><textarea class="input mt-3" id="editDesc" rows="2" placeholder="Desc"></textarea>
+    <div class="flex-gap mt-4"><button id="saveEditBtn">Save</button><button class="secondary" onclick="closeEdit()">Cancel</button></div>
+  </div></div>
+
+  <div id="addModal" class="edit-modal"><div class="edit-modal-content">
+    <h3>➕ Add Book</h3>
+    <input class="input mt-3" id="addTitle" placeholder="Title"><input class="input mt-3" id="addAuthor" placeholder="Author"><input class="input mt-3" id="addCat" placeholder="Category"><input class="input mt-3" id="addTotal" placeholder="Total" type="number"><textarea class="input mt-3" id="addDesc" rows="2" placeholder="Desc"></textarea>
+    <div class="flex-gap mt-4"><button id="saveAddBtn">Add</button><button class="secondary" onclick="closeAdd()">Cancel</button></div>
+  </div></div>
+
+  <div id="reminderPopup" class="reminder-modal"><div id="reminderText"></div><button class="small secondary mt-2" onclick="closeRemind()">Close</button></div>
+</div>
+
+<script src="data.js"></script>
+<script src="backend.js"></script>
+<script>
+let currentUser = null;
+function $(id){return document.getElementById(id)}
+function showPage(id){document.querySelectorAll('.page-view').forEach(p=>p.classList.remove('active-page'));$(id).classList.add('active-page')}
+
+async function refreshUI(){
+  let books = await LibraryAPI.getBooks();
+  let box = $('booksGrid');
+  box.innerHTML = '';
+  books.forEach(b=>{
+    let d = document.createElement('div');
+    d.className='book-card';
+    d.innerHTML=`
+      <div class=book-title><span>${b.title}</span><span class=tag>${b.category}</span></div>
+      <div class=text-muted>Author: ${b.author} | ${b.available}/${b.total}</div>
+      <div class=flex-gap mt-3>
+        <button class=small secondary onclick="showDetail(${b.id})">Details</button>
+        <button class=small onclick="startBorrow(${b.id})">Borrow</button>
+      </div>
+    `;
+    box.appendChild(d);
+  });
+  fillCategories(books);
+}
+
+function fillCategories(books){
+  let cats = [...new Set(books.map(b=>b.category))];
+  let sel = $('catFilter');
+  sel.innerHTML='<option value="">All</option>';
+  cats.forEach(c=>{let o=document.createElement('option');o.value=c;o.textContent=c;sel.appendChild(o)});
+}
+
+function showDetail(id){
+  LibraryAPI.getBook(id).then(b=>{
+    if(!b)return;
+    alert(`"${b.title}"\nAuthor: ${b.author}\nCat: ${b.category}\nStock: ${b.available}/${b.total}\nDesc: ${b.desc}`);
+  });
+}
+
+function startBorrow(id){
+  if(!currentUser)return alert('Please login');
+  LibraryAPI.getBook(id).then(b=>{
+    if(!b||b.available<1)return alert('Cannot borrow');
+    showPage('confirmPage');
+    $('confirmBox').innerHTML=`
+      <h3>Borrow: "${b.title}"</h3>
+      <div class=mt-3>Days: <input type=number id=days value=14 min=1 max=60 style=width:100px class=input></div>
+      <button class=mt-3 onclick="confirmBorrow(${b.id})">Confirm</button>
+    `;
+  });
+}
+
+async function confirmBorrow(bid){
+  let days = +$('days').value||14;
+  let ok = await LibraryAPI.borrowBook(currentUser.username,bid,days);
+  alert(ok?'Success':'Failed');
+  showPage('browsePage');
+  refreshUI();
+}
+
+async function loadMyRecords(){
+  let list = await LibraryAPI.getUserLoans(currentUser.username);
+  let box = $('recordsBox');
+  let html=`<table class=admin-table><thead><tr><th>Title</th><th>Borrowed</th><th>Due</th><th>Status</th><th>Action</th></tr></thead><tbody>`;
+  for(let l of list){
+    let b = await LibraryAPI.getBook(l.bookId);
+    let status = l.returned?'✅ Returned':'📘 Borrowed';
+    html+=`<tr>
+      <td>${b.title}</td>
+      <td>${new Date(l.borrowAt).toLocaleString()}</td>
+      <td>${new Date(l.dueAt).toLocaleString()}</td>
+      <td>${status}</td>
+      <td>${!l.returned?'<button class=small secondary onclick="returnBook('+l.id+','+b.id+')">Return</button>':'-'}</td>
+    </tr>`;
+  }
+  html+='</tbody></table>';
+  box.innerHTML=html;
+}
+
+async function returnBook(loanId,bookId){
+  await LibraryAPI.returnBook(loanId,bookId);
+  loadMyRecords();
+  refreshUI();
+}
+
+async function loadAdminPanel(){
+  let books = await LibraryAPI.getBooks();
+  let tb = $('adminBooks');
+  tb.innerHTML='';
+  
+  for(let b of books){
+    let isBorrowed = await LibraryAPI.isBookBorrowed(b.id);
+    let r = tb.insertRow();
+    r.innerHTML = `
+      <td>${b.id}</td>
+      <td>${b.title}</td>
+      <td>${b.author}</td>
+      <td>${b.category}</td>
+      <td>${b.total}</td>
+      <td>${b.available}</td>
+      <td>
+        <button class="small secondary" ${isBorrowed ? 'disabled title="Cannot edit: book is borrowed"' : 'onclick="editBook('+b.id+')"'}>Edit</button>
+        <button class="small danger" style="margin-left:6px" ${isBorrowed ? 'disabled title="Cannot delete: book is borrowed"' : 'onclick="delBook('+b.id+')"'}>Remove</button>
+      </td>
+    `;
+  }
+
+  let loans = await LibraryAPI.getActiveLoans();
+  let t2 = $('adminLoans');
+  t2.innerHTML='';
+  for(let l of loans){
+    let b = await LibraryAPI.getBook(l.bookId);
+    let u = await LibraryAPI.getUser(l.username);
+    let left = Math.ceil((new Date(l.dueAt)-new Date())/(86400000));
+    t2.innerHTML+=`
+      <tr>
+        <td>${l.id}</td><td>${b.title}</td><td>${u.username}</td>
+        <td>${new Date(l.dueAt).toLocaleString()}</td>
+        <td style="color:${left>0?'#2b6cb0':'red'}">${left>0?left+' days':'Overdue'}</td>
+        <td><button class=small secondary onclick="sendRemind('${u.username}','${b.title}',${left})">Remind</button></td>
+      </tr>
+    `;
+  }
+}
+
+function editBook(id){
+  LibraryAPI.getBook(id).then(b=>{
+    $('editBid').value=b.id;$('editTitle').value=b.title;$('editAuthor').value=b.author;$('editCat').value=b.category;$('editTotal').value=b.total;$('editDesc').value=b.desc||'';
+    $('editModal').style.display='flex';
+  });
+}
+
+function closeEdit(){$('editModal').style.display='none'}
+function closeAdd(){$('addModal').style.display='none'}
+
+async function saveEdit(){
+  let id=+$('editBid').value;
+  let data={
+    title:$('editTitle').value,author:$('editAuthor').value,category:$('editCat').value,
+    total:+$('editTotal').value,desc:$('editDesc').value
+  };
+  await LibraryAPI.updateBook(id,data);
+  closeEdit();
+  loadAdminPanel();
+  refreshUI();
+}
+
+async function delBook(id){
+  if(!confirm('Confirm remove?'))return;
+  let ok = await LibraryAPI.deleteBook(id);
+  if(!ok) alert('Cannot delete: book is borrowed');
+  loadAdminPanel();
+  refreshUI();
+}
+
+async function saveAddBook(){
+  let data={
+    title:$('addTitle').value,author:$('addAuthor').value,category:$('addCat').value,
+    total:+$('addTotal').value,desc:$('addDesc').value
+  };
+  if(!data.title||!data.total||data.total<1)return alert('Invalid');
+  await LibraryAPI.addBook(data);
+  closeAdd();
+  loadAdminPanel();
+  refreshUI();
+}
+
+async function sendRemind(user,book,left){
+  await LibraryAPI.addReminder(user,book,left);
+  alert('Reminder sent');
+}
+
+async function checkReminder(){
+  if(!currentUser)return;
+  let list = await LibraryAPI.getMyReminders(currentUser.username);
+  if(list.length===0)return;
+  let txt='';
+  list.forEach(r=>{
+    if(r.left>0){
+      txt+=`"${r.book}" will be due in ${r.left} days, please return on time<br>`;
+    }else{
+      txt+=`"${r.book}" is ${-r.left} days overdue, please return immediately<br>`;
+    }
+  });
+  $('reminderText').innerHTML=txt;
+  $('reminderPopup').style.display='block';
+  await LibraryAPI.clearReminders(currentUser.username);
+}
+
+function closeRemind(){$('reminderPopup').style.display='none'}
+
+async function doLogin(){
+  let user=$('loginUser').value.trim(),pwd=$('loginPass').value.trim();
+  let u=await LibraryAPI.login(user,pwd);
+  if(!u)return alert('Login failed');
+  
+  currentUser=u;
+  $('globalUserBadge').innerHTML=`<span class=avatar-sm>${u.name[0]}</span> ${u.name} (${u.role})`;
+  $('globalLogoutBtn').style.display='inline-flex';
+
+  if(u.role==='admin'){
+    $('adminBtn').style.display='inline-flex';
+    $('reportBtn').style.display='inline-flex';
+    await loadAdminPanel();
+    showPage('adminPage');
+  } else {
+    showPage('browsePage');
+    refreshUI();
+    setTimeout(checkReminder,600);
+  }
+}
+
+async function doRegister(){
+  let user=$('regUser').value.trim(),name=$('regName').value.trim(),pwd=$('regPass').value.trim();
+  let ok=await LibraryAPI.register(user,name,pwd);
+  alert(ok?'Success':'Failed');
+}
+
+$('doLoginBtn').onclick=doLogin;
+$('doRegBtn').onclick=doRegister;
+$('loginTabBtn').onclick=()=>{$('loginTabBtn').classList.add('active');$('regTabBtn').classList.remove('active');$('loginForm').classList.add('active');$('regForm').classList.remove('active')}
+$('regTabBtn').onclick=()=>{$('regTabBtn').classList.add('active');$('loginTabBtn').classList.remove('active');$('regForm').classList.add('active');$('loginForm').classList.remove('active')}
+$('globalLogoutBtn').onclick=()=>{currentUser=null;location.reload()}
+$('searchBtn').onclick=()=>LibraryAPI.searchBooks($('searchInput').value,$('catFilter').value).then(list=>{
+  let box=$('booksGrid');box.innerHTML='';list.forEach(b=>{
+    let d=document.createElement('div');d.className='book-card';
+    d.innerHTML=`
+      <div class=book-title><span>${b.title}</span><span class=tag>${b.category}</span></div>
+      <div class=text-muted>Author: ${b.author} | ${b.available}/${b.total}</div>
+      <div class=flex-gap mt-3>
+        <button class=small secondary onclick="showDetail(${b.id})">Details</button>
+        <button class=small onclick="startBorrow(${b.id})">Borrow</button>
+      </div>
+    `;box.appendChild(d);
+  })});
+$('resetBtn').onclick=()=>{$('searchInput').value='';$('catFilter').value='';refreshUI()}
+$('myRecordsBtn').onclick=async()=>{await loadMyRecords();showPage('recordsPage')}
+$('adminBtn').onclick=async()=>{await loadAdminPanel();showPage('adminPage')}
+$('addBookBtn').onclick=()=>{$('addModal').style.display='flex'}
+$('saveEditBtn').onclick=saveEdit;
+$('saveAddBtn').onclick=saveAddBook;
+$('reportBtn').onclick=async()=>{
+  let loans=await LibraryAPI.getAllLoans();
+  let users=await LibraryAPI.getAllUsers();
+  let books=await LibraryAPI.getBooks();
+  let csv='LoanID,User,Name,Title,Borrowed,Due,Status\n';
+  loans.forEach(l=>{
+    let u=users.find(x=>x.username===l.username);
+    let b=books.find(x=>x.id===l.bookId);
+    csv+=`${l.id},${l.username},${u?.name},${b?.title},${l.borrowAt},${l.dueAt},${l.returned?'Returned':'Borrowed'}\n`;
+  });
+  let a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv]));a.download='report.csv';a.click();
+}
+
+LibraryAPI.init().then(()=>{
+  refreshUI();
+});
+</script>
+</body>
+</html>
