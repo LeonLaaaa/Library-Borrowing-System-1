@@ -8,7 +8,6 @@ Table of Contents
 - Deployment Instructions
 - Usage Guide
 - Technical Details
-- Limitations and Improvements
 1. Project Overview
 This project aims to address the pain points of traditional library circulation management—such as inaccurate inventory, inefficient processes, and cumbersome overdue management—by providing a lightweight, deployable client-side solution. The system does not rely on server-side databases or complex deployment environments; it runs directly in a web browser, making it ideal for small and medium-sized libraries with limited technical resources.
 Developed in accordance with software project management theory, the project employs a hybrid management approach to ensure the system’s stability and feasibility.
